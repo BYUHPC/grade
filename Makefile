@@ -3,7 +3,7 @@
 # Variables
 VERSION := $(shell head -n 1 VERSION.txt)
 DATE := $(shell date +%F)
-DOCS := README.md INTERNALS.md HOOKS.md
+DOCS := README.md INTERNALS.md HOOKS.md VERSION.txt
 BIN_FILES := bin/grade
 LIBEXEC_FILES := libexec/add_grade libexec/print_grade libexec/grade_utils.py libexec/grade_hooks
 MAN_PAGE_MD := share/man/man1/grade.1.md
