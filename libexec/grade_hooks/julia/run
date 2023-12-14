@@ -1,0 +1,56 @@
+#!/usr/bin/env julia
+
+
+
+"""
+    Grade
+
+Julia hooks for `grade`, a simple, extensible grading framework.
+
+Exports [`question`](@ref), [`extra_credit`](@ref), and [`evaluate_grade`](@ref).
+"""
+module Grade
+
+export question, extra_credit, evaluate_grade
+
+
+
+"""
+    question(points, description, success)
+    extra_credit(points, description, success)
+
+Grade the question described by `description`, awarding `points` if `success` is `true`.
+
+For `question`, `points` is added to points possible; for `extra_credit`, it isn't.
+"""
+function question(points, description, success; isextracredit=false)
+    extra_credit_or_regular = isextracredit ? "extra"   : "regular"
+    success_or_failure      = success       ? "success" : "failure"
+    ENV["GRADE_TABLE"] = read(`add_grade $extra_credit_or_regular $success_or_failure $points $description`, String)
+end
+
+extra_credit(points, description, success) = question(points, description, success; isextracredit=true)
+
+
+
+"""
+    evaluate_grade()
+
+Evaluate the grade held in GRADE_TABLE
+"""
+function evaluate_grade()
+    # Print results
+    run(`print_grade`)
+end
+
+end # module Grade
+
+
+
+if abspath(PROGRAM_FILE) == @__FILE__
+    question =     Grade.question
+    extra_credit = Grade.extra_credit
+    scripts = split(ENV["GRADE_SCRIPTS"], ":")
+    include.(scripts)
+    Grade.evaluate_grade()
+end

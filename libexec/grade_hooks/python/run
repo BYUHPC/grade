@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+
+import os
+import subprocess
+
+
+
+def question(points, description, success, is_extra_credit=False):
+    """
+    Grade the question described by 'description', awarding 'points' if 'success' is True.
+    For 'question', 'points' is added to points possible; for 'extra_credit', it isn't.
+    """
+    extra_credit_or_regular = "extra" if is_extra_credit else "regular"
+    success_or_failure = "success" if success else "failure"
+    os.environ["GRADE_TABLE"] = subprocess.check_output(
+        ["add_grade", extra_credit_or_regular, success_or_failure, str(points), description]
+    ).decode()
+
+def extra_credit(points, description, success):
+    Grade.question(points, description, success, is_extra_credit=True)
+
+
+
+if __name__ == "__main__":
+    # Inject question and extra_credit into the global namespace
+    globals()['question'] = question
+    globals()['extra_credit'] = extra_credit
+    scripts = os.environ.get("GRADE_SCRIPTS", "").split(":")
+    for script in scripts:
+        if script:  # Only try to include non-empty script paths
+            with open(script) as f:
+                exec(f.read(), globals())
+
+    subprocess.run(["print_grade"])

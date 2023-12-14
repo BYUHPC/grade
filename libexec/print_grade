@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+
+# This script reads the environment variable GRADE_TABLE and prints the results it contains in human-readable form
+
+import sys, os, json
+from grade_utils import round_if_integral, color_print, error_message, print_result
+
+
+
+def print_grades():
+    """Print the contents of GRADE_TABLE in human-readable form, returning True on success, False on failure"""
+    # Read in GRADE_TABLE
+    grade_data = os.getenv('GRADE_TABLE')
+    if grade_data is None:
+        error_message("GRADE_TABLE is empty")
+        return False
+
+    # Convert the GRADE_TABLE from JSON to a dictionary
+    try:
+        grades = json.loads(grade_data)
+    except json.JSONDecodeError:
+        error_message("GRADE_TABLE is invalid")
+        return False
+
+    # Print results
+    if not os.getenv("GRADE_QUIET"):
+        color_print("blue", "RESULTS:")
+        color_print("blue", "---------------------")
+        for grade_type in ("success", "failure", "extra", "missed"):
+            for points, description in grades[grade_type]:
+                print_result(grade_type, points, description)
+
+    # Print total score
+    points_possible = round_if_integral(sum(points for points, description in grades["success"] + grades["failure"]))
+    points_earned   = round_if_integral(sum(points for points, description in grades["success"] + grades["extra"]))
+    if not os.getenv("GRADE_QUIET"):
+        color_print("blue", "---------------------")
+    color_print("blue", f"TOTAL: {points_earned}/{points_possible}")
+
+    return True
+
+
+
+if __name__ == "__main__":
+    if not print_grades(): sys.exit(1)

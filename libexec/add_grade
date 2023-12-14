@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+
+usage = f"USAGE: {__file__} <extra_credit|regular> <success|failure> <points> <description>"
+
+# This script reads the environment variable GRADE_TABLE, updates it based on the provided arguments, and prints the
+# updated version back to stdout. Depending on verbosity, it may also print a message for the user to stderr.
+
+import sys, os, json
+from grade_utils import color_print, error_message, print_result
+
+
+
+def log_grade(question_type, success_or_failure, points, description):
+    """Extracts the JSON from GRADE_TABLE, adds the result given on the command line, and returns the updated JSON"""
+    # Read the current value of GRADE_TABLE
+    initial_grade_table = json.dumps({"success": [], "failure": [], "extra": [], "missed": []})
+    current_data = os.getenv('GRADE_TABLE', initial_grade_table) # default to empty lists for each type
+    try:
+        grades = json.loads(current_data)
+    except json.JSONDecodeError:
+        error_message("GRADE_TABLE is invalid")
+        sys.exit(1)
+
+    # Append new grade data
+    grade_type = ("success" if (question_type == "regular" and success_or_failure == "success") else
+                  "failure" if (question_type == "regular" and success_or_failure == "failure") else
+                  "extra"   if (question_type == "extra"   and success_or_failure == "success") else
+                  "missed"  if (question_type == "extra"   and success_or_failure == "failure") else
+                  "Uh-oh, there was a problem with the hook calling add_grade with an invalid argument")
+    grades[grade_type].append((points, description))
+
+    # Print grading status information if appropriate
+    if not os.getenv("GRADE_QUIET") and (grade_type=="failure" or grade_type=="extra" or os.getenv("GRADE_VERBOSE")):
+        print_result(grade_type, points, description)
+
+    # Return the updated GRADE_TABLE value
+    return json.dumps(grades)
+
+
+
+if __name__ == "__main__":
+    # Exit if the correct arguments aren't provided
+    if len(sys.argv) != 5:
+        color_print("yellow", usage)
+        sys.exit(2)
+
+    # Parse
+    question_type = sys.argv[1]
+    success_or_failure = sys.argv[2]
+    points = float(sys.argv[3])
+    description = sys.argv[4]
+
+    # Print the updated GRADE_TABLE to stdout
+    updated_grade_table = log_grade(question_type, success_or_failure, points, description)
+    print(updated_grade_table)

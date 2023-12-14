@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+
+
+# Function that both user-facing functions call
+_question() {
+    local REGULAR_OR_EXTRA="$1"
+    local POINTS="$2"
+    local DESCRIPTION="$3"
+    shift 3
+    "$@" && local SUCCESS_OR_FAILURE=success || local SUCCESS_OR_FAILURE=failure
+    export GRADE_TABLE="$(add_grade $REGULAR_OR_EXTRA $SUCCESS_OR_FAILURE $POINTS "$DESCRIPTION")"
+}
+
+
+
+# User-facing functions
+question() {
+    _question regular "$@"
+}
+
+extra_credit() {
+    _question extra "$@"
+}
+
+
+
+# Source each script in GRADE_SCRIPTS
+IFS=':' read -ra grade_scripts <<< "$GRADE_SCRIPTS"
+for grade_script in "${grade_scripts[@]}"; do
+    source "$grade_script"
+done
+
+
+
+# Print results
+print_grade

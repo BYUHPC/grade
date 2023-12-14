@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+
+import os, sys, subprocess, argparse
+
+# Useful directories
+libexec_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "libexec")
+hooks_dir = os.path.join(libexec_dir, "grade_hooks")
+
+# Import utils
+sys.path.insert(1, libexec_dir)
+from grade_utils import verbose_message, error_message
+
+
+
+def parse():
+    """Parses command line arguments and returns verbose, quiet, and the arguments as a tuple"""
+    # Set up the parser
+    parser = argparse.ArgumentParser(description="Run the specified grading script and its arguments",
+                                     epilog="See the grade(1) man page for usage details")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-v", "--verbose", action="store_true", help="Print verbose output")
+    group.add_argument("-q", "--quiet", action="store_true",
+                       help="Only print output from grading scripts and the final score")
+    parser.add_argument("args", nargs=argparse.REMAINDER, help="The grading script and its arguments")
+
+    # Parse
+    args = parser.parse_args()
+
+    # Set GRADE_VERBOSE or GRADE_QUIET if requested
+    if args.verbose: os.environ["GRADE_VERBOSE"] = "1"
+    if args.quiet:   os.environ["GRADE_QUIET"]   = "1"
+
+    # Return the command line arguments
+    return args.args
+
+
+
+def scripts_and_args(args, grade_dir):
+    """Figures out which scripts should be run given a grading directory and the command line arguments"""
+    # Which languages are available in grade_hooks?
+    available_hooks = [name for name in os.listdir(hooks_dir) if os.path.isdir(os.path.join(hooks_dir, name))]
+
+    # Look for grade-setup.{hook} and {script}.{hook} for each available hook
+    for hook in available_hooks:
+        setup_scripts = []
+        for i in range(len(args)):
+            current_path = os.path.join(grade_dir, os.sep.join(args[:i]))
+
+            # grade_setup.{hook}
+            setup_script = os.path.join(current_path, f"grade-setup.{hook}")
+
+            # {arg}.{hook}
+            final_script = os.path.join(current_path, f"{args[i]}.{hook}")
+
+            # If there is a setup script, add it
+            if os.path.isfile(setup_script):
+                setup_scripts.append(setup_script)
+
+            # If {arg}.{hook} is a script, we're done
+            if os.path.isfile(final_script):
+                verbose_message(f"found grading script {final_script}")
+                return (setup_scripts + [final_script], args[i+1:])
+
+    # If nothing was found, return empty lists
+    verbose_message(f"no grading script found in {grade_dir}")
+    return ([], [])
+
+
+
+def main():
+    """Executes script(s) from GRADE_PATH with the appropriate hook, returning 1 if no script is found"""
+    # Clean up environment if necessary
+    for env_var in ("GRADE_VERBOSE", "GRADE_QUIET", "GRADE_TABLE", "GRADE_SCRIPTS"):
+        if env_var in os.environ:
+            del os.environ[env_var]
+
+    # Parse
+    command_line = parse()
+
+    # Read in GRADE_PATH
+    grade_path = os.getenv("GRADE_PATH", os.getcwd()) # use the current directory by default
+    grade_dirs = grade_path.split(":")
+    if os.getcwd() not in grade_dirs:
+        grade_dirs.append(os.getcwd())
+    verbose_message(f"searching for grading script in {grade_path}")
+
+    # Look through each directory in GRADE_PATH, short-circuiting when something is found
+    for grade_dir in grade_dirs:
+
+        # If the scripts requested are in this directory...
+        scripts, args = scripts_and_args(command_line, grade_dir)
+        if scripts:
+
+            # Find the hook script we're supposed to run with
+            hook = os.path.splitext(scripts[0])[1].strip(".")
+            hook_script = os.path.join(hooks_dir, hook, "run")
+            if not os.path.isfile(hook_script):
+                error_message(f"hook script {hook_script} does not exist")
+                return 1
+            scripts_str = ", ".join(scripts)
+            args_str = " ".join(args)
+            verbose_message(f"Running user scripts ({scripts_str}) on arguments '{args_str}' with hook {hook_script}")
+
+            # Run the hook script after setting GRADE_SCRIPTS appropriately
+            env = os.environ.copy()
+            env["GRADE_SCRIPTS"] = ":".join(scripts)
+            env["PATH"] = ":".join([libexec_dir, os.getenv("PATH")])
+            return subprocess.run([hook_script] + args, env=env).returncode
+
+    # If we made it this far, no grade script was found
+    error_message("cound not find a matching script in GRADE_PATH ({grade_path})")
+    return 1
+
+
+
+if __name__ == "__main__":
+    sys.exit(main())
