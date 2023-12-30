@@ -113,12 +113,6 @@ extra_credit $points $description $arg1 [$arg2 ...]
 
 
 
-# RETURN VALUE
-
-If the grade meets or exceeds the number of points possible, zero is returned; if an error occurs, 1 is returned; if bad arguments are supplied, 2 is returned; and if points are missed, the number of points missed (rounded up to the nearest integer) is returned.
-
-
-
 # BUGS AND QUIRKS
 
 There's no build-in protection from malice--if a disgruntled student puts `rm -r $HOME/*` in a script that you're  grading, you may be in for a bad time. Running in a chroot or a container is encouraged.
