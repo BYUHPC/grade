@@ -108,7 +108,7 @@ def main():
             return subprocess.run([hook_script] + args, env=env).returncode
 
     # If we made it this far, no grade script was found
-    error_message("cound not find a matching script in GRADE_PATH ({grade_path})")
+    error_message(f"could not find a matching script in GRADE_PATH ({grade_path})")
     return 1
 
 

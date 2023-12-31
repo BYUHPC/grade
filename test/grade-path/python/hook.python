@@ -1,0 +1,10 @@
+import os
+
+# Setup scripts run
+question(1, "root grade-seth.bash sourced", os.environ["ROOT_SETUP_SCRIPT_SOURCED_PYTHON"] == "yes")
+question(1, "branch grade-seth.bash sourced", os.environ["BRANCH_SETUP_SCRIPT_SOURCED_PYTHON"] == "yes")
+
+# Negatives are accounted for properly
+question(1, "question correctly registers failure (THIS QUESTION SHOULD FAIL)", False)
+extra_credit(1, "extra_credit works in hook script", True) # to make up for the missed question above
+extra_credit(1, "extra_credit correctly registers failure (THIS QUESTION SHOULD FAIL)", False)

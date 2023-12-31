@@ -17,7 +17,7 @@ def question(points, description, success, is_extra_credit=False):
     ).decode()
 
 def extra_credit(points, description, success):
-    Grade.question(points, description, success, is_extra_credit=True)
+    question(points, description, success, is_extra_credit=True)
 
 
 

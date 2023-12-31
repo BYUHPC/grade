@@ -36,10 +36,13 @@ distrib: install
 	cp $(MAN_PAGE_MD) $(DESTDIR)/$(MAN_PAGE_MD)
 	tar -czf $(TARBALL) $(DESTDIR)
 
+test:
+	test/test.sh
+
 # Clean target
 clean:
 	rm -f $(MAN_PAGE) $(TARBALL)
 	rm -rf $(DIST_DIR)
 	@echo "Clean complete."
 
-.PHONY: all distrib install clean
+.PHONY: all distrib install clean test

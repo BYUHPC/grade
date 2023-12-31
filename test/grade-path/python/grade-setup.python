@@ -1,0 +1,5 @@
+import os
+
+os.environ["BRANCH_SETUP_SCRIPT_SOURCED_PYTHON"] = "yes"
+question(1, "question works in root setup script", True)
+extra_credit(0, "extra_credit works in root setup script", True)
