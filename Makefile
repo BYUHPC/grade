@@ -32,7 +32,7 @@ install:
 
 # Distrib target
 distrib: install
-	cp Makefile $(DOCS) $(DESTDIR)
+	cp -r test Makefile $(DOCS) $(DESTDIR)
 	cp $(MAN_PAGE_MD) $(DESTDIR)/$(MAN_PAGE_MD)
 	tar -czf $(TARBALL) $(DESTDIR)
 
