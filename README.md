@@ -43,7 +43,9 @@ third argument"
 
 
 
-## Installation
+## Testing and Installation
+
+`make test` will run a few rudimentary tests.
 
 `make install [DESTDIR=/some/directory]` will install `grade` in `DESTDIR`, which defaults to `/`. If you're building from Git rather than one of the [releases](https://github.com/BYUHPC/grade/releases), you'll need Pandoc installed to generate the man page.
 
@@ -61,7 +63,7 @@ Here's what needs to happen to improve `grade`:
 
 ### Tests
 
-As it stands, there are no tests `grade`'s functionality, and I haven't even tried using the `python` hook. Using `grade` itself to do the testing would probably be a good idea.
+As it stands, the tests of `grade`'s functionality are primitive.
 
 ### Compiled Languages
 
