@@ -53,6 +53,12 @@ To generate a release tarball, use `make distrib`, which will create `grade-$VER
 
 
 
+## Safety
+
+`grade` has no built-in protection against student malice--if a shell script that you're grading contains `rm -rf ~`, your home directory will be wiped if you haven't taken precautions. Using [`safely`](https://github.com/BYUHPC/safely), running in a container, or similar is recommended.
+
+
+
 ## Future work
 
 This is just a personal project that I figured might be useful for other people; it isn't yet robust or versatile. If there's something that `grade` doesn't do that you would like it to, don't hesitate to [open an issue](https://github.com/BYUHPC/grade/issues).
